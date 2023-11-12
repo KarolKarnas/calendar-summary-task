@@ -7,25 +7,20 @@ interface DailyEvents {
 	date: Date;
 	eventsNumber: number;
 	totalDuration: number;
-	longestEvent: string;
+	longestEvent: CalendarEvent;
 }
 
 const CalendarSummary: React.FunctionComponent = () => {
 	const [dailyEvents, setDailyEvents] = useState<DailyEvents[]>([]);
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 	const [isError, setIsError] = useState<boolean>(false);
-	// const [totalPeriodEventsCount, setTotalPeriodEventsCount] =
-	// 	useState<number>(0);
-	// const [totalPeriodDuration, setTotalPeriodDuration] = useState<number>(0);
-	// const [longestPeriodEvents, setLongestPeriodEvents] = useState<
-	// 	CalendarEvent[] | null
-	// >(null);
+	console.log(dailyEvents);
 
 	useEffect(() => {
-		fetchData(7);
+		fetchAndSetData(7);
 	}, []);
 
-	const fetchData = async (daysNumber: number) => {
+	const fetchAndSetData = async (daysNumber: number) => {
 		try {
 			setIsLoading(true);
 			const fetchDailyEvents: DailyEvents[] = [];
@@ -35,10 +30,8 @@ const CalendarSummary: React.FunctionComponent = () => {
 				date.setDate(date.getDate() + index);
 				const calendarEvents = await getCalendarEvents(date);
 
-				const longestEvent = calendarEvents.reduce((longest, current) =>
-					current.durationInMinutes > longest.durationInMinutes
-						? current
-						: longest
+				const longestEvent = calendarEvents.reduce((prev, curr) =>
+					curr.durationInMinutes > prev.durationInMinutes ? curr : prev
 				);
 
 				// store calendarEvents and the date in new object type DailyEvents
@@ -49,7 +42,7 @@ const CalendarSummary: React.FunctionComponent = () => {
 						(acc, curr) => acc + curr.durationInMinutes,
 						0
 					),
-					longestEvent: longestEvent.title,
+					longestEvent: longestEvent,
 				};
 				fetchDailyEvents.push(calendarEventDate);
 			}
@@ -57,43 +50,10 @@ const CalendarSummary: React.FunctionComponent = () => {
 			setIsLoading(false);
 			return;
 		} catch (error) {
+			setIsError(true);
 			console.error('Error fetching events:', error);
-		} 
+		}
 	};
-
-	// const getTotalDailyDuration = (day: DailyEvent) => {
-	// 	return day.calendarEvents.reduce(
-	// 		(acc, curr) => acc + curr.durationInMinutes,
-	// 		0
-	// 	);
-	// };
-
-	// const getTotalDailyEvents = (day: DailyEvent) => {
-	// 	return day.calendarEvents.length;
-	// };
-
-	// const getLongestPeriodEvents = (data: DailyEvent[]) => {
-	// 	let longestDuration = 0;
-	// 	// search for the longest weekly event
-	// 	data.forEach((dayEvents) => {
-	// 		dayEvents.calendarEvents.forEach((event) => {
-	// 			if (event.durationInMinutes > longestDuration) {
-	// 				longestDuration = event.durationInMinutes;
-	// 			}
-	// 		});
-	// 	});
-
-	// 	// check if there are more than one event with the longestDuration
-	// 	const longestEvents: CalendarEvent[] = [];
-	// 	data.forEach((dayEvents) => {
-	// 		dayEvents.calendarEvents.forEach((event) => {
-	// 			if (event.durationInMinutes === longestDuration) {
-	// 				longestEvents.push(event);
-	// 			}
-	// 		});
-	// 	});
-	// 	return longestEvents;
-	// };
 
 	return (
 		<div>
@@ -101,56 +61,48 @@ const CalendarSummary: React.FunctionComponent = () => {
 			{isLoading ? (
 				<div>Loading...</div>
 			) : isError ? (
-				<div>Error</div>
+				<div>Error fetching data...</div>
+			) : dailyEvents.length === 0 ? (
+				<div>There is no events</div>
 			) : (
 				<table>
 					<thead>
 						<tr>
-							<th scope='col'>Date</th>
-							<th scope='col'>Number of Events</th>
-							<th scope='col'>Total duration [min] </th>
-							<th scope='col'>Longest event </th>
+							<th>Date</th>
+							<th>Number of Events</th>
+							<th>Total duration [min] </th>
+							<th>Longest event </th>
 						</tr>
 					</thead>
-					{/* <tbody>
+					<tbody>
 						{dailyEvents.map((day, index) => (
 							<tr key={index}>
 								<td>{day.date.toISOString().split('T')[0]}</td>
-								<td>{getTotalDailyEvents(day)}</td>
-								<td>{getTotalDailyDuration(day)}</td>
-
-								<td>
-									{
-										day.calendarEvents.reduce((prev, curr) =>
-											prev.durationInMinutes > curr.durationInMinutes
-												? prev
-												: curr
-										).title
-									}
-								</td>
+								<td>{day.eventsNumber}</td>
+								<td>{day.totalDuration}</td>
+								<td>{day.longestEvent.title}</td>
 							</tr>
 						))}
 						<tr className='total-row'>
 							<td>Total</td>
-							<td>{totalPeriodEventsCount}</td>
-							<td>{totalPeriodDuration}</td>
 							<td>
-								{longestPeriodEvents ? (
-									//if there are more than one event with longest duration, render them all
-									longestPeriodEvents.length > 1 ? (
-										<div className='longest-events'>
-											<span>{`There was more than one longest event:`}</span>
-											{longestPeriodEvents.map((event, index) => (
-												<span key={index}> {event.title}</span>
-											))}
-										</div>
-									) : (
-										<span>{longestPeriodEvents[0].title}</span>
-									)
-								) : null}
+								{dailyEvents.reduce((acc, curr) => acc + curr.eventsNumber, 0)}
+							</td>
+							<td>
+								{dailyEvents.reduce((acc, curr) => acc + curr.totalDuration, 0)}
+							</td>
+							<td>
+								{
+									dailyEvents.reduce((prev, curr) =>
+										curr.longestEvent.durationInMinutes >
+										prev.longestEvent.durationInMinutes
+											? curr
+											: prev
+									).longestEvent.title
+								}
 							</td>
 						</tr>
-					</tbody> */}
+					</tbody>
 				</table>
 			)}
 		</div>
