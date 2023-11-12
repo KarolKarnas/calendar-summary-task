@@ -5,7 +5,7 @@ import CalendarSummary from './CalendarSummary/CalendarSummary';
 function App() {
   return (
     <div className="App" style={{ maxWidth: '1000px', margin: 'auto', padding: "0 1rem" }}>
-      <CalendarSummary timePeriod={7} />
+      <CalendarSummary />
     </div>
   );
 }

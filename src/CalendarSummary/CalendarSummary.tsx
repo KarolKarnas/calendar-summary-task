@@ -11,10 +11,10 @@ interface DailyEvents {
 }
 
 interface CalendarSummaryProps {
-	timePeriod: number;
+	timePeriod?: number;
 }
 
-const CalendarSummary: React.FunctionComponent<CalendarSummaryProps> = ({timePeriod}) => {
+const CalendarSummary: React.FunctionComponent<CalendarSummaryProps> = ({timePeriod = 7}) => {
 	const [dailyEvents, setDailyEvents] = useState<DailyEvents[]>([]);
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 	const [isError, setIsError] = useState<boolean>(false);
@@ -28,7 +28,7 @@ const CalendarSummary: React.FunctionComponent<CalendarSummaryProps> = ({timePer
 			setIsLoading(true);
 			const fetchedDailyEvents: DailyEvents[] = [];
 
-			// loop through number of required days
+			// loop through required days number
 			for (let index = 0; index < daysNumber; index++) {
 				let date = new Date();
 				date.setDate(date.getDate() + index);
