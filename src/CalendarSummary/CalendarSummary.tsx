@@ -10,20 +10,24 @@ interface DailyEvents {
 	longestEvent: CalendarEvent;
 }
 
-const CalendarSummary: React.FunctionComponent = () => {
+interface CalendarSummaryProps {
+	timePeriod: number;
+}
+
+const CalendarSummary: React.FunctionComponent<CalendarSummaryProps> = ({timePeriod}) => {
 	const [dailyEvents, setDailyEvents] = useState<DailyEvents[]>([]);
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 	const [isError, setIsError] = useState<boolean>(false);
-	console.log(dailyEvents);
 
 	useEffect(() => {
-		fetchAndSetData(7);
-	}, []);
+		fetchAndSetData(timePeriod);
+	}, [timePeriod]);
 
 	const fetchAndSetData = async (daysNumber: number) => {
 		try {
 			setIsLoading(true);
-			const fetchDailyEvents: DailyEvents[] = [];
+			const fetchedDailyEvents: DailyEvents[] = [];
+
 			// loop through number of required days
 			for (let index = 0; index < daysNumber; index++) {
 				let date = new Date();
@@ -34,7 +38,7 @@ const CalendarSummary: React.FunctionComponent = () => {
 					curr.durationInMinutes > prev.durationInMinutes ? curr : prev
 				);
 
-				// store calendarEvents and the date in new object type DailyEvents
+				// store calendarEvents and the date in new object type: DailyEvents
 				const calendarEventDate: DailyEvents = {
 					date,
 					eventsNumber: calendarEvents.length,
@@ -44,9 +48,9 @@ const CalendarSummary: React.FunctionComponent = () => {
 					),
 					longestEvent: longestEvent,
 				};
-				fetchDailyEvents.push(calendarEventDate);
+				fetchedDailyEvents.push(calendarEventDate);
 			}
-			setDailyEvents(fetchDailyEvents);
+			setDailyEvents(fetchedDailyEvents);
 			setIsLoading(false);
 			return;
 		} catch (error) {
@@ -55,6 +59,19 @@ const CalendarSummary: React.FunctionComponent = () => {
 		}
 	};
 
+	const totalEventCount = (dailyEvents: DailyEvents[]) =>
+		dailyEvents.reduce((acc, curr) => acc + curr.eventsNumber, 0);
+
+	const totalDuration = (dailyEvents: DailyEvents[]) =>
+		dailyEvents.reduce((acc, curr) => acc + curr.totalDuration, 0);
+
+	const totalLongestEvent = (dailyEvents: DailyEvents[]) =>
+		dailyEvents.reduce((prev, curr) =>
+			curr.longestEvent.durationInMinutes > prev.longestEvent.durationInMinutes
+				? curr
+				: prev
+		).longestEvent.title;
+		
 	return (
 		<div>
 			<h2>Calendar summary</h2>
@@ -83,24 +100,11 @@ const CalendarSummary: React.FunctionComponent = () => {
 								<td>{day.longestEvent.title}</td>
 							</tr>
 						))}
-						<tr className='total-row'>
+						<tr>
 							<td>Total</td>
-							<td>
-								{dailyEvents.reduce((acc, curr) => acc + curr.eventsNumber, 0)}
-							</td>
-							<td>
-								{dailyEvents.reduce((acc, curr) => acc + curr.totalDuration, 0)}
-							</td>
-							<td>
-								{
-									dailyEvents.reduce((prev, curr) =>
-										curr.longestEvent.durationInMinutes >
-										prev.longestEvent.durationInMinutes
-											? curr
-											: prev
-									).longestEvent.title
-								}
-							</td>
+							<td>{totalEventCount(dailyEvents)}</td>
+							<td>{totalDuration(dailyEvents)}</td>
+							<td>{totalLongestEvent(dailyEvents)}</td>
 						</tr>
 					</tbody>
 				</table>

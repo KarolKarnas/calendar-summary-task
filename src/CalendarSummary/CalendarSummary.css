@@ -33,19 +33,11 @@ tbody tr:nth-child(2n) {
 background-color: #fcfcfc;
 }
 
-tbody tr.total-row {
+tbody tr:last-child {
 	background: #fbfbfb;
 }
 
-.total-row td {
+tbody tr:last-child td {
 	padding: 0.5rem 2rem;
 	font-weight: bold;
-}
-
-.longest-events {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-  gap: 1rem;
 }
